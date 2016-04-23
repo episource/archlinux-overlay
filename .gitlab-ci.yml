@@ -1,0 +1,21 @@
+variables:
+  REPONAME: "archlinux-overlay"
+  BINDIR: "$CI_PROJECT_DIR"
+  REPODIR: "$CI_PROJECT_DIR"
+
+before_script:
+  - pacman -Syu --noconfirm
+  - "echo 'nobody ALL=(ALL) NOPASSWD: /usr/bin/pacman' >> /etc/sudoers"
+  
+build_repo:
+  script:
+    - sudo -u nobody -E ./.build.sh
+    - ./.deploy.sh
+    - mv $REPONAME.db.tar.xz $REPONAME.db
+    - mv $REPONAME.files.tar.xz $REPONAME.files
+  artifacts:
+    paths:
+      - "$REPONAME.db"
+      - "$REPONAME.files"
+      - "*.pkg.tar.xz"
+  
