@@ -1,0 +1,36 @@
+# Based on: https://aur.archlinux.org/packages/validatornu/
+
+pkgname=ssh-agent-filter
+pkgver=0.4.1
+pkgrel=0
+pkgdesc="filtering proxy for ssh-agent meant to be forwarded to untrusted servers"
+arch=('x86_64')
+url="http://validator.github.io"
+license=('GPL3')
+depends=('bash' 'boost-libs' 'openssh')
+makedepends=('boost' 'help2man' 'pandoc')
+optdepends=('dialog')
+source=("git+https://github.com/tiwe-de/${pkgname}.git#tag=${pkgver}")
+md5sums=('SKIP')
+
+build() {
+    cd "$srcdir/$pkgname"
+    make
+}
+
+package() {
+  cd "$srcdir/$pkgname"
+  
+  install -D -m555 afssh "$pkgdir/usr/bin/afssh"
+  install -D -m555 ssh-agent-filter "$pkgdir/usr/bin/ssh-agent-filter"
+  install -D -m555 ssh-askpass-noinput "$pkgdir/usr/bin/ssh-askpass-noinput"
+  install -D -m644 ssh-agent-filter.bash-completion "$pkgdir/etc/bash_completion.d/ssh-agent-filter"
+  
+  install -D -m644 afssh.1 "$pkgdir/usr/share/man/man1/afssh.1"
+  install -D -m644 ssh-agent-filter.1 "$pkgdir/usr/share/man/man1/ssh-agent-filter.1"
+  install -D -m644 ssh-askpass-noinput.1 "$pkgdir/usr/share/man/man1/ssh-askpass-noinput.1"
+  
+  install -D -m644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -D -m644 changelog "$pkgdir/usr/share/doc/$pkgname/changelog"
+  install -D -m644 GPL-3 "$pkgdir/usr/share/doc/$pkgname/license"
+}
