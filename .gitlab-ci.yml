@@ -4,18 +4,36 @@ variables:
   REPONAME: "archlinux-overlay"
   REPODIR: "$CI_PROJECT_DIR"
 
+  
 before_script:
   - pacman -Syu --noconfirm
+  
+  # The repository build script is run by user 'nobody'. The build scripts needs
+  # to install dependencies using pacman. This requires root permissions.
+  # (Note: the build script itself can't be run as root, as makepkg would
+  # complain)
   - "echo 'nobody ALL=(ALL) NOPASSWD: /usr/bin/pacman' >> /etc/sudoers"
+  
+  # a writable home-directory is needed by import-validpgpkeys.sh
+  - mkdir -p /home/nobody && chown -R nobody /home/nobody
+  - usermod -d /home/nobody nobody
+  
+  # import pgp keys flagged as valid
+  - sudo -u nobody -E -H ./.import-validpgpkeys.sh
+  
   
 build_repo:
   script:
-    - sudo -u nobody -E ./.build.sh
-    - ./.deploy.sh
-
-    # pacman expects files without tar.xz prefix
+    # the build script can't be run as root, as makepkg would complain...
+    - sudo -u nobody -E -H ./.build.sh
+    
+    # prepare & publish repository index
+    # -> pacman expects files without tar.xz prefix,
+    #    replace existing symlinks for publishing
+    - sudo -u nobody -E -H ./.deploy.sh
     - mv --force $REPONAME.db.tar.xz $REPONAME.db
     - mv --force $REPONAME.files.tar.xz $REPONAME.files
+    
   artifacts:
     paths:
       - "$REPONAME.db"
