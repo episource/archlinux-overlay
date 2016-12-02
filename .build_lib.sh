@@ -1,8 +1,5 @@
 # Based upon https://github.com/Alexpux/MINGW-packages/blob/master/ci-library.sh
 
-SCRIPT_DIR=$( dirname $( readlink -e $0 ) )
-BINDIR="${BINDIR:-$SCRIPT_DIR/_bin}"
-REPODIR="${REPODIR:-$SCRIPT_DIR/_repo}"
 
 PACKAGES=()
 
@@ -35,9 +32,18 @@ function _do() {
     return $?
 }
 
+# Ensure that the given environment variable has been defined and is not empty
+function _ensure-var() {
+    local -n VARNAME=$1
+    if [[ -z ${VARNAME+x} ]]; then
+        _log failure "Environment variable $1 not defined."
+        exit 1
+    fi
+}
+
 
 # Package provides another (ignoring version constraints)
-_package_provides() {
+function _package_provides() {
     local package="${1}"
     local another_without_version="${2%%[<>=]*}"
     local pkgname provides
@@ -48,7 +54,7 @@ _package_provides() {
 }
 
 # Get package information
-_package_info() {
+function _package_info() {
     local package="${1}"
     local properties=("${@:2}")
     for property in "${properties[@]}"; do
@@ -61,7 +67,7 @@ _package_info() {
 }
 
 # Add package to build after required dependencies
-_build_add() {
+function _build_add() {
     local package="${1}"
     local depends makedepends
     for sorted_package in "${sorted_packages[@]}"; do
@@ -77,8 +83,18 @@ _build_add() {
     sorted_packages+=("${package}")
 }
 
+# list packages
+#   adds the names of all subdirectories containing a PKGBUILD file to the
+#   $PACKAGES array
+function list_packages() {
+    for p in $(ls **/PKGBUILD); do
+        PACKAGES+=(${p/%\/PKGBUILD/})
+    done
+}
+
 # Sort packages by dependency
-sort_packages_by_dependency() {
+#   reorders $PACKAGES such that dependencies are built first
+function sort_packages_by_dependency() {
     local sorted_packages=()
     for p in "${PACKAGES[@]}"; do
         _build_add "${p}"
@@ -86,27 +102,23 @@ sort_packages_by_dependency() {
     PACKAGES=("${sorted_packages[@]}")
 }
 
-# list packages
-list_packages() {
-    for p in $(ls **/PKGBUILD); do
-        PACKAGES+=(${p/%\/PKGBUILD/})
-    done
-}
-
 # Build all packages defined in array variable PACKAGES
-build_packages() {   
+#   builds all $PACKAGES in the given order
+function build_packages() {
     _log build_step "Start building packages: ${PACKAGES[@]}"
-    _do mkdir -p "$BINDIR"
+    _do mkdir -p "$REPODIR"
     
-    for p in ${PACKAGES[@]}; do
+    for p in "${PACKAGES[@]}"; do
         cd $p
         _log command "Building pkg: $p"
-        PKGEXT=".pkg.tar.xz" BUILDDIR="${BINDIR}" \
+        PKGEXT=".pkg.tar.xz" PKGDEST="$REPODIR" \
             _do makepkg --install --noconfirm --nosign --syncdeps --cleanbuild
-        cd -
-        
-        mv $p/*.pkg.tar.xz "$BINDIR"
+        cd - > /dev/null
     done
     
     _log success "Done building packages!"
 }
+
+
+_ensure-var "REPODIR"
+_ensure-var "REPONAME"

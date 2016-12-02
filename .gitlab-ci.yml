@@ -1,6 +1,7 @@
+image: nfnty/arch-devel:latest
+
 variables:
   REPONAME: "archlinux-overlay"
-  BINDIR: "$CI_PROJECT_DIR"
   REPODIR: "$CI_PROJECT_DIR"
 
 before_script:
@@ -11,8 +12,10 @@ build_repo:
   script:
     - sudo -u nobody -E ./.build.sh
     - ./.deploy.sh
-    - mv $REPONAME.db.tar.xz $REPONAME.db
-    - mv $REPONAME.files.tar.xz $REPONAME.files
+
+    # pacman expects files without tar.xz prefix
+    - mv --force $REPONAME.db.tar.xz $REPONAME.db
+    - mv --force $REPONAME.files.tar.xz $REPONAME.files
   artifacts:
     paths:
       - "$REPONAME.db"
