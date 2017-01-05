@@ -35,6 +35,9 @@ build_repo:
     - mv --force $REPONAME.files.tar.xz $REPONAME.files
     
   artifacts:
+    # expire artifacts per default - the gitlab web frontend can be used to keep
+    # artifacts of interest for an unlimited time
+    expire_in: 1 week
     paths:
       - "$REPONAME.db"
       - "$REPONAME.files"
