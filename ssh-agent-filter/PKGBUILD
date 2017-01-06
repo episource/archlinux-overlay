@@ -1,4 +1,4 @@
-# Based on: https://aur.archlinux.org/packages/validatornu/
+# Maintainer: Philipp Serr <episource@gmx.de>
 
 pkgname=ssh-agent-filter
 pkgver=0.4.1
