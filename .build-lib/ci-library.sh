@@ -1,81 +1,73 @@
-#!/bin/bash
+# Based upon https://github.com/Alexpux/MINGW-packages/blob/master/ci-library.sh
 
-# Continuous Integration Library for MSYS2
-# Author: Renato Silva <br.renatosilva@gmail.com>
-# Author: Qian Hong <fracting@gmail.com>
 
-# Enable colors
-normal=$(tput sgr0)
-red=$(tput setaf 1)
-green=$(tput setaf 2)
-cyan=$(tput setaf 6)
+PACKAGES=()
 
-# Basic status function
-_status() {
+# Print a colored log message
+function _log() {
     local type="${1}"
-    local status="${package:+${package}: }${2}"
-    local items=("${@:3}")
+    shift
+    local msg="${@}"
+    
+    local normal='\e[0m'
+    local red='\e[1;31m'   
+    local green='\e[1;32m'
+    local yellow='\e[1;33m'
+    local cyan='\e[1;36m'
+    
     case "${type}" in
-        failure) local -n nameref_color='red';   title='[MSYS2 CI] FAILURE:' ;;
-        success) local -n nameref_color='green'; title='[MSYS2 CI] SUCCESS:' ;;
-        message) local -n nameref_color='cyan';  title='[MSYS2 CI]'
+        failure) echo -e "$red$msg$normal" ;;
+        success) echo -e "$green$msg$normal" ;;
+        build_step) echo -e "$green$msg$normal" ;;
+        command) echo -e "$cyan$msg$normal" ;;
+        message) echo -e "$msg" ;;
     esac
-    printf "\n${nameref_color}${title}${normal} ${status}\n\n"
-    printf "${items:+\t%s\n}" "${items:+${items[@]}}"
 }
 
-# Convert lines to array
-_as_list() {
-    local -n nameref_list="${1}"
-    local filter="${2}"
-    local strip="${3}"
-    local lines="${4}"
-    local result=1
-    nameref_list=()
-    while IFS= read -r line; do
-        test -z "${line}" && continue
-        result=0
-        [[ "${line}" = ${filter} ]] && nameref_list+=("${line/${strip}/}")
-    done <<< "${lines}"
-    return "${result}"
+# Execute command and stop execution if the command fails
+function _do() {
+    CMD=$@
+    _log command "$CMD"
+    $CMD || { _log failure "FAILED: $CMD"; exit 1; }
+    return $?
 }
 
-# Changes since master or from head
-_list_changes() {
-    local list_name="${1}"
-    local filter="${2}"
-    local strip="${3}"
-    local git_options=("${@:4}")
-    _as_list "${list_name}" "${filter}" "${strip}" "$(git log "${git_options[@]}" upstream/master.. | sort -u)" ||
-    _as_list "${list_name}" "${filter}" "${strip}" "$(git log "${git_options[@]}" HEAD^.. | sort -u)"
+# Ensure that the given environment variable has been defined and is not empty
+function _ensure-var() {
+    local -n VARNAME=$1
+    if [[ -z ${VARNAME+x} ]]; then
+        _log failure "Environment variable $1 not defined."
+        exit 1
+    fi
+}
+
+
+# Package provides another (ignoring version constraints)
+function _package_provides() {
+    local package="${1}"
+    local another_without_version="${2%%[<>=]*}"
+    local pkgname provides
+    _package_info "${package}" pkgname provides
+    for pkg_name in "${pkgname[@]}";  do [[ "${pkg_name}" = "${another_without_version}" ]] && return 0; done
+    for provided in "${provides[@]}"; do [[ "${provided}" = "${another_without_version}" ]] && return 0; done
+    return 1
 }
 
 # Get package information
-_package_info() {
+function _package_info() {
     local package="${1}"
     local properties=("${@:2}")
     for property in "${properties[@]}"; do
         local -n nameref_property="${property}"
         nameref_property=($(
-            MINGW_PACKAGE_PREFIX='mingw-w64' source "${package}/PKGBUILD"
+            source "${package}/PKGBUILD"
             declare -n nameref_property="${property}"
             echo "${nameref_property[@]}"))
     done
 }
 
-# Package provides another
-_package_provides() {
-    local package="${1}"
-    local another="${2}"
-    local pkgname provides
-    _package_info "${package}" pkgname provides
-    for pkg_name in "${pkgname[@]}";  do [[ "${pkg_name}" = "${another}" ]] && return 0; done
-    for provided in "${provides[@]}"; do [[ "${provided}" = "${another}" ]] && return 0; done
-    return 1
-}
-
 # Add package to build after required dependencies
-_build_add() {
+function _build_add() {
     local package="${1}"
     local depends makedepends
     for sorted_package in "${sorted_packages[@]}"; do
@@ -83,7 +75,7 @@ _build_add() {
     done
     _package_info "${package}" depends makedepends
     for dependency in "${depends[@]}" "${makedepends[@]}"; do
-        for unsorted_package in "${packages[@]}"; do
+        for unsorted_package in "${PACKAGES[@]}"; do
             [[ "${package}" = "${unsorted_package}" ]] && continue
             _package_provides "${unsorted_package}" "${dependency}" && _build_add "${unsorted_package}"
         done
@@ -91,114 +83,55 @@ _build_add() {
     sorted_packages+=("${package}")
 }
 
-# Download previous artifact
-_download_previous() {
-    local filenames=("${@}")
-    [[ "${DEPLOY_PROVIDER}" = bintray ]] || return 1
-    for filename in "${filenames[@]}"; do
-        if ! wget --no-verbose "https://dl.bintray.com/${BINTRAY_ACCOUNT}/${BINTRAY_REPOSITORY}/${filename}"; then
-            rm -f "${filenames[@]}"
-            return 1
-        fi
+# list packages
+#   adds the names of all subdirectories containing a PKGBUILD file to the
+#   $PACKAGES array
+function list_packages() {
+    for p in $(ls **/PKGBUILD); do
+        PACKAGES+=(${p/%\/PKGBUILD/})
     done
-    return 0
 }
 
-# Git configuration
-git_config() {
-    local name="${1}"
-    local value="${2}"
-    test -n "$(git config ${name})" && return 0
-    git config --global "${name}" "${value}" && return 0
-    failure 'Could not configure Git for makepkg'
-}
-
-# Run command with status
-execute(){
-    local status="${1}"
-    local command="${2}"
-    local arguments=("${@:3}")
-    cd "${package:-.}"
-    message "${status}"
-    if [[ "${command}" != *:* ]]
-        then ${command} ${arguments[@]}
-        else ${command%%:*} | ${command#*:} ${arguments[@]}
-    fi || failure "${status} failed"
-    cd - > /dev/null
-}
-
-# Update system
-update_system() {
-    repman add ci.msys 'https://dl.bintray.com/alexpux/msys2' || return 1
-    pacman --noconfirm --noprogressbar --sync --refresh --refresh --sysupgrade --sysupgrade || return 1
-    test -n "${DISABLE_QUALITY_CHECK}" && return 0 # TODO: remove this option when not anymore needed
-    pacman --noconfirm --needed --noprogressbar --sync ci.msys/pactoys
+# extracts all 'validpgpkeys' from the PKGBUILDs
+#   extracts all 'validpgpkeys' listed in the PKGBUILDs belonging to $PACKAGES
+function get_validpgpkeys() {
+    _VALIDPGPKEYS=()
+    for p in "${PACKAGES[@]}"; do
+        local validpgpkeys=()
+        _package_info "$p" validpgpkeys
+        _VALIDPGPKEYS+=$validpgpkeys
+    done
+    
+    echo "${_VALIDPGPKEYS[@]}"
 }
 
 # Sort packages by dependency
-define_build_order() {
+#   reorders $PACKAGES such that dependencies are built first
+function sort_packages_by_dependency() {
     local sorted_packages=()
-    for unsorted_package in "${packages[@]}"; do
-        _build_add "${unsorted_package}"
+    for p in "${PACKAGES[@]}"; do
+        _build_add "${p}"
     done
-    packages=("${sorted_packages[@]}")
+    PACKAGES=("${sorted_packages[@]}")
 }
 
-# Associate artifacts with this build
-create_build_references() {
-    local repository_name="${1}"
-    local references="${repository_name}.builds"
-    _download_previous "${references}" || touch "${references}"
-    for file in *; do
-        sed -i "/^${file}.*/d" "${references}"
-        printf '%-80s%s\n' "${file}" "${BUILD_URL}" >> "${references}"
+# Build all packages defined in array variable PACKAGES
+#   builds all $PACKAGES in the given order
+function build_packages() {
+    _log build_step "Start building packages: ${PACKAGES[@]}"
+    _do mkdir -p "$REPODIR"
+    
+    for p in "${PACKAGES[@]}"; do
+        cd $p
+        _log command "Building pkg: $p"
+        PKGEXT=".pkg.tar.xz" PKGDEST="$REPODIR" \
+            _do makepkg --install --noconfirm --nosign --syncdeps --cleanbuild
+        cd - > /dev/null
     done
-    sort "${references}" | tee "${references}.sorted" | sed -r 's/(\S+)\s.*\/([^/]+)/\2\t\1/'
-    mv "${references}.sorted" "${references}"
+    
+    _log success "Done building packages!"
 }
 
-# Add packages to repository
-create_pacman_repository() {
-    local name="${1}"
-    _download_previous "${name}".{db,files}{,.tar.xz}
-    repo-add "${name}.db.tar.xz" *.pkg.tar.xz
-}
 
-# Deployment is enabled
-deploy_enabled() {
-    test -n "${BUILD_URL}" || return 1
-    [[ "${DEPLOY_PROVIDER}" = bintray ]] || return 1
-    local repository_account="$(git remote get-url origin | cut -d/ -f4)"
-    [[ "${repository_account,,}" = "${BINTRAY_ACCOUNT,,}" ]]
-}
-
-# Added commits
-list_commits()  {
-    _list_changes commits '*' '#*::' --pretty=format:'%ai::[%h] %s'
-}
-
-# Changed recipes
-list_packages() {
-    local _packages
-    _list_changes _packages '*/PKGBUILD' '%/PKGBUILD' --pretty=format: --name-only || return 1
-    for _package in "${_packages[@]}"; do
-        local find_case_sensitive="$(find -name "${_package}" -type d -print -quit)"
-        test -n "${find_case_sensitive}" && packages+=("${_package}")
-    done
-    return 0
-}
-
-# Recipe quality
-check_recipe_quality() {
-    # TODO: remove this option when not anymore needed
-    if test -n "${DISABLE_QUALITY_CHECK}"; then
-        echo 'This feature is disabled.'
-        return 0
-    fi
-    saneman --format='\t%l:%c %p:%c %m' --verbose --no-terminal "${packages[@]}"
-}
-
-# Status functions
-failure() { local status="${1}"; local items=("${@:2}"); _status failure "${status}." "${items[@]}"; exit 1; }
-success() { local status="${1}"; local items=("${@:2}"); _status success "${status}." "${items[@]}"; exit 0; }
-message() { local status="${1}"; local items=("${@:2}"); _status message "${status}"  "${items[@]}"; }
+_ensure-var "REPODIR"
+_ensure-var "REPONAME"

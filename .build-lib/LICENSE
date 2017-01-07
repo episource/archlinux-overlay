@@ -1,3 +1,13 @@
+ci-library.sh is based upon 
+https://github.com/Alexpux/MINGW-packages/blob/master/ci-library.sh
+licensed under the "3-clause BSD" license found below.
+
+Modifications are licensed under the Apache License, Version 2.0 (the "License")
+- see LICENSE file in the repository root.
+
+
+"3-clause BSD" license:
+
 Copyright (c) 2013, Алексей
 All rights reserved.
 

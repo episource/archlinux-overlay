@@ -19,18 +19,18 @@ before_script:
   - usermod -d /home/nobody nobody
   
   # import pgp keys flagged as valid
-  - sudo -u nobody -E -H ./.import-validpgpkeys.sh
+  - sudo -u nobody -E -H .build-bin/import-validpgpkeys.sh
   
   
 build_repo:
   script:
     # the build script can't be run as root, as makepkg would complain...
-    - sudo -u nobody -E -H ./.build.sh
+    - sudo -u nobody -E -H .build-bin/build.sh
     
     # prepare & publish repository index
     # -> pacman expects files without tar.xz prefix,
     #    replace existing symlinks for publishing
-    - sudo -u nobody -E -H ./.deploy.sh
+    - sudo -u nobody -E -H .build-bin/deploy.sh
     - mv --force $REPONAME.db.tar.xz $REPONAME.db
     - mv --force $REPONAME.files.tar.xz $REPONAME.files
     
