@@ -29,10 +29,13 @@ build_repo:
     
     # prepare & publish repository index
     # -> pacman expects files without tar.xz prefix,
-    #    replace existing symlinks for publishing
+    #    replace existing symlinks for artifacts upload (only)
+    #    keep symlinks when building locally without artifact upload
     - sudo -u nobody -E -H .build-bin/deploy.sh
-    - mv --force $REPONAME.db.tar.xz $REPONAME.db
-    - mv --force $REPONAME.files.tar.xz $REPONAME.files
+    - "if [[ -n $CI_PROJECT_URL ]]; then
+         mv --force $REPONAME.db.tar.xz $REPONAME.db; fi"
+    - "if [[ -n $CI_PROJECT_URL ]]; then
+         mv --force $REPONAME.files.tar.xz $REPONAME.files; fi"
     
   artifacts:
     # expire artifacts per default - the gitlab web frontend can be used to keep

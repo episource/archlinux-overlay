@@ -37,6 +37,21 @@ SigLevel = Optional TrustAll
 
 Build artifacts (the repository) are deleted automatically after one week. Goto to the [build's page](https://gitlab.com/help/user/project/builds/artifacts.md#browsing-build-artifacts) and choose "keep" to preserve the repository for an unlimited time.
 
+### ... locally using GitLab-CI without GitLab server
+GitLab-Ci can also be used locally without a GitLab server.
+
+**Prerequisites:** Install gitlab-ci-multi-runner: `pacman -S gitlab-ci-multi-runner`. Nothing more! No need to start and configure the associated gitlab-runner service.
+
+Now the repository is updated as such:
+1. Clone this repository & cd into its root
+2. Run the command below (as root or user having access to the docker socket) - the repository is then created inside a subdirectory `_repo`. If a PKGBUILD's version hasn't changed, existing binary packages are preserved and won't be rebuild. Otherwhise packages are replaced by newer versions, removing any outdated files.
+
+```bash
+mkdir -p _repo && OWNER=$(stat -c%u:%g _repo) && PERM=$(stat -c%a _repo) && \
+gitlab-ci-multi-runner exec docker --pre-build-script "export REPODIR=/repo && chown -R nobody /repo && chmod -R u+rwx /repo" --docker-volumes "$PWD/_repo:/repo" build_repo; \
+chown -R $OWNER _repo && chmod -R $PERM _repo
+```
+
 ### ... using a custom build environment
 The build environment needs to be based on [Arch Linux](https://wiki.archlinux.org/index.php/Arch_Linux). If a dockerized build environment is an option, take a look at the docker image [`nfnty/arch-devel`](https://hub.docker.com/r/nfnty/arch-devel/), which is a good point to start.
 
