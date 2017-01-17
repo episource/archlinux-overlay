@@ -1,21 +1,25 @@
-# $Id$
-# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Maintainer: Philipp Serr <episource@gmx.org>
+# Contributor: Gaetan Bisson <bisson@archlinux.org>
 # Contributor: Hisato Tatekura <hisato_tatekura@excentrics.net>
 # Contributor: Massimiliano Torromeo <massimiliano DOT torromeo AT google mail service>
 
-pkgname=unbound
+
+distname=unbound
+pkgname=$distname-python
 pkgver=1.6.0
 pkgrel=1
-pkgdesc='Validating, recursive, and caching DNS resolver'
+pkgdesc='Validating, recursive, and caching DNS resolver with python scripting.'
 url='https://unbound.net/'
 license=('custom:BSD')
 arch=('i686' 'x86_64')
-makedepends=('expat')
+makedepends=('expat' 'swig')
 optdepends=('expat: unbound-anchor')
-depends=('openssl' 'ldns' 'libevent' 'dnssec-anchors')
+depends=('openssl' 'ldns' 'libevent' 'dnssec-anchors' 'python2' )
+provides=("$distname=$pkgver")
+conflicts=("$distname")
 backup=('etc/unbound/unbound.conf')
 validpgpkeys=('EDFAA3F2CA4E6EB05681AF8E9F6F1C2D7E045F8D')
-source=("https://unbound.net/downloads/${pkgname}-${pkgver}.tar.gz"{,.asc}
+source=("https://unbound.net/downloads/${distname}-${pkgver}.tar.gz"{,.asc}
         'service'
         'conf')
 sha1sums=('9b7606b016b447dc837efc108cee94f3fecf4ede'
@@ -26,8 +30,8 @@ sha1sums=('9b7606b016b447dc837efc108cee94f3fecf4ede'
 install=install
 
 build() {
-	cd "${srcdir}/${pkgname}-${pkgver}"
-	./configure \
+	cd "${srcdir}/${distname}-${pkgver}"
+    PYTHON_VERSION=2.7 ./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
 		--localstatedir=/var \
@@ -37,6 +41,7 @@ build() {
 		--with-rootkey-file=/etc/trusted-key.key \
 		--with-conf-file=/etc/unbound/unbound.conf \
 		--with-pidfile=/run/unbound.pid \
+        --with-pythonmodule \
 		--enable-relro-now \
 		--enable-pie \
 
@@ -44,7 +49,7 @@ build() {
 }
 
 package() {
-	cd "${srcdir}/${pkgname}-${pkgver}"
+	cd "${srcdir}/${distname}-${pkgver}"
 	make DESTDIR="${pkgdir}" install
 	install -Dm644 doc/example.conf.in "${pkgdir}/etc/unbound/unbound.conf.example"
 	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
