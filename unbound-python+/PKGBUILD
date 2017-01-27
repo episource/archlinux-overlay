@@ -5,32 +5,59 @@
 
 
 distname=unbound
-pkgname=$distname-python
-pkgver=1.6.0
+pkgname=$distname-python+-git
+pkgver=1.6.0.rxx.xxxxxxxxx
 pkgrel=1
-pkgdesc='Validating, recursive, and caching DNS resolver with python scripting.'
+pkgdesc='Validating, recursive, and caching DNS resolver with python scripting and custom patches.'
 url='https://unbound.net/'
 license=('custom:BSD')
 arch=('i686' 'x86_64')
-makedepends=('expat' 'swig')
+makedepends=('expat' 'swig' 'flex') # flex 2.6.3 is incompatible!
 optdepends=('expat: unbound-anchor')
 depends=('openssl' 'ldns' 'libevent' 'dnssec-anchors' 'python2' )
-provides=("$distname=$pkgver")
-conflicts=("$distname")
+provides=("$distname=$pkgver" "$distname-python=$pkgver" "$distname-python+=$pkgver")
+conflicts=("$distname" "$distname-python")
 backup=('etc/unbound/unbound.conf')
-validpgpkeys=('EDFAA3F2CA4E6EB05681AF8E9F6F1C2D7E045F8D')
-source=("https://unbound.net/downloads/${distname}-${pkgver}.tar.gz"{,.asc}
+source=("$distname::git+https://github.com/episource/unbound#branch=dev/all-merged/main"
         'service'
         'conf')
-sha1sums=('9b7606b016b447dc837efc108cee94f3fecf4ede'
-          'SKIP'
+sha1sums=('SKIP'
           '63fcc187cec6f262d81600e66c6747285c72ad15'
           '98515708441cb831890a0b6d1986fd40649646c0')
 
 install=install
 
+pkgver() {
+    cd "${srcdir}/${distname}"
+    
+    version=$( ./configure --version | head -1 | awk '{ print $3 }' )
+    rnum=$( git rev-list --count --first-parent HEAD )
+    rev=$( git rev-parse --short HEAD )
+    
+    echo "$version.r$rnum.$rev"
+}
+
+prepare() {
+    cd "${srcdir}/${distname}"
+
+    ver=$( pkgver )
+    rev_date=$( git log -1 --format="%ad" --date=format:"%b %e, %Y" )
+    
+    files=( 
+        "doc/README" "doc/unbound.8.in" "doc/unbound.conf.5.in"
+        "doc/unbound-checkconf.8.in" "doc/unbound-control.8.in"
+        "doc/unbound-anchor.8.in" "doc/unbound-host.1.in"
+        "doc/example.conf.in" "doc/libunbound.3.in" 
+    )
+    
+    for f in "${files[@]}"; do
+        sed -i "s/@version@/$ver/g;s/@date@/$rev_date/g" "$f"
+    done
+}
+
 build() {
-	cd "${srcdir}/${distname}-${pkgver}"
+	cd "${srcdir}/${distname}"
+    
     PYTHON_VERSION=2.7 ./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
@@ -44,12 +71,12 @@ build() {
         --with-pythonmodule \
 		--enable-relro-now \
 		--enable-pie \
-
+    
 	make
 }
 
 package() {
-	cd "${srcdir}/${distname}-${pkgver}"
+	cd "${srcdir}/${distname}"
 	make DESTDIR="${pkgdir}" install
 	install -Dm644 doc/example.conf.in "${pkgdir}/etc/unbound/unbound.conf.example"
 	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
