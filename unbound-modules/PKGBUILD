@@ -1,0 +1,39 @@
+# Maintainer: Philipp Serr <episource@gmx.org>
+
+
+distname=unbound-modules
+pkgname=unbound-modules-git
+pkgver=x.x.x.rxx.xxxxxxxxx
+pkgrel=1
+pkgdesc='Python module scripts for the unbound dns resolver.'
+url='https://github.com/episource/${distname}'
+license=('custom:APACHE')
+arch=('any')
+makedepends=()
+optdepends=('unbound-python+: recursive forward rules and other advanced features')
+depends=('unbound-python')
+provides=("$distname=$pkgver")
+conflicts=("$distname")
+backup=('etc/unbound/pythonmod_conf.py')
+source=("$distname::git+https://github.com/episource/${distname}#branch=master")
+sha1sums=('SKIP')
+
+pkgver() {
+    cd "${srcdir}/${distname}"
+    git describe --long | sed -r -e 's/^v//' -e 's/-([0-9]+)-/.r\1./'
+}
+
+package() {
+	cd "${srcdir}/${distname}"
+    
+    install -D -m644 -t "${pkgdir}/etc/unbound/modules" \
+        nxforward.py
+        
+    install -D -m644 -t "${pkgdir}/etc/unbound" \
+        pythonmod_conf.py
+    
+    install -D -m444 -t "${pkgdir}/usr/share/doc/${distname}" \
+        CHANGELOG README.md
+	install -D -m444 -t "${pkgdir}/usr/share/licenses/${distname}" \
+        LICENSE NOTICE
+}
