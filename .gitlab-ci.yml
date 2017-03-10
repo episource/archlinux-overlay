@@ -7,6 +7,13 @@ variables:
   
 before_script:
   - pacman -Syu --noconfirm
+
+  # flex 2.6.3 is severly broken / incompatible
+  # see e.g. https://github.com/westes/flex/issues/162
+  - "if [[ $( pacman -Q flex ) == *2.6.3* ]]; then
+       curl https://archive.archlinux.org/packages/f/flex/flex-2.6.1-1-x86_64.pkg.tar.xz -o /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
+       pacman --noconfirm -U /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
+     fi"
   
   # The repository build script is run by user 'nobody'. The build scripts needs
   # to install dependencies using pacman. This requires root permissions.
