@@ -6,7 +6,7 @@
 
 distname=unbound
 pkgname=$distname-python
-pkgver=1.6.0
+pkgver=1.6.1
 pkgrel=1
 pkgdesc='Validating, recursive, and caching DNS resolver with python scripting.'
 url='https://unbound.net/'
@@ -21,29 +21,36 @@ backup=('etc/unbound/unbound.conf')
 validpgpkeys=('EDFAA3F2CA4E6EB05681AF8E9F6F1C2D7E045F8D')
 source=("https://unbound.net/downloads/${distname}-${pkgver}.tar.gz"{,.asc}
         'service'
+        'hook'
         'conf')
-sha1sums=('9b7606b016b447dc837efc108cee94f3fecf4ede'
+sha256sums=('42df63f743c0fe8424aeafcf003ad4b880b46c14149d696057313f5c1ef51400'
           'SKIP'
-          '63fcc187cec6f262d81600e66c6747285c72ad15'
-          '98515708441cb831890a0b6d1986fd40649646c0')
+            '9e48ac14f5a2de0e3e8186d85017ef09c097507202daaa91206acd47b7b45bcc'
+            '8a00ed90370a5c99664205dc93eb8f2b88e6ffa42842d737fa9228dca670014c'
+            '07d764f4f42adfba9685c5c7feef81116118f4a1772b118aa3ebbe059e8a513e')
 
 install=install
 
 build() {
 	cd "${srcdir}/${distname}-${pkgver}"
+
+	# Build against embedded flex instead of system one, see:
+	# https://www.nlnetlabs.nl/bugs-script/show_bug.cgi?id=1223
+	export LEX=:
+
     PYTHON_VERSION=2.7 ./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
 		--localstatedir=/var \
 		--sbindir=/usr/bin \
 		--disable-rpath \
-		--with-libevent \
-		--with-rootkey-file=/etc/trusted-key.key \
+		--enable-pie \
+		--enable-relro-now \
 		--with-conf-file=/etc/unbound/unbound.conf \
 		--with-pidfile=/run/unbound.pid \
-        --with-pythonmodule \
-		--enable-relro-now \
-		--enable-pie \
+		--with-rootkey-file=/etc/trusted-key.key \
+		--with-libevent \
+		--with-pythonmodule \
 
 	make
 }
@@ -54,5 +61,6 @@ package() {
 	install -Dm644 doc/example.conf.in "${pkgdir}/etc/unbound/unbound.conf.example"
 	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 	install -Dm644 ../service "${pkgdir}/usr/lib/systemd/system/unbound.service"
+	install -Dm644 ../hook "${pkgdir}/usr/share/libalpm/hooks/unbound-key.hook"
 	install -Dm644 ../conf "${pkgdir}/etc/unbound/unbound.conf"
 }

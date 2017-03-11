@@ -1,6 +1,7 @@
 post_install() {
 	getent group unbound &>/dev/null || groupadd -r unbound >/dev/null
 	getent passwd unbound &>/dev/null || useradd -r -g unbound -d /etc/unbound -s /bin/false -c unbound unbound >/dev/null
+	cp -f /etc/trusted-key.key /etc/unbound/
     
     echo -e "\e[1;33mINFO: chroot must be disabled for python modules to be found\e[0m"
     echo -e "\e[1;33m      - add 'chroot: \"\"' to unbound.conf\e[0m"
