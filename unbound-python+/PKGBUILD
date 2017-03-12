@@ -5,20 +5,20 @@
 
 
 distname=unbound
-pkgname=$distname-python+-git
-pkgver=1.6.1.rxx.xxxxxxxxx
+pkgname=$distname-python+
+pkgver=1.6.1
 pkgrel=1
 pkgdesc='Validating, recursive, and caching DNS resolver with python scripting and custom patches.'
 url='https://unbound.net/'
 license=('custom:BSD')
 arch=('i686' 'x86_64')
-makedepends=('expat' 'swig' 'flex') # flex 2.6.3 is incompatible!
+makedepends=('expat' 'swig' 'flex')
 optdepends=('expat: unbound-anchor')
-depends=('openssl' 'ldns' 'libevent' 'dnssec-anchors' 'python2' )
-provides=("$distname=$pkgver" "$distname-python=$pkgver" "$distname-python+=$pkgver")
+depends=('dnssec-anchors' 'ldns' 'libevent' 'openssl' 'python2')
+provides=("$distname=$pkgver" "$distname-python=$pkgver")
 conflicts=("$distname" "$distname-python")
 backup=('etc/unbound/unbound.conf')
-source=("$distname::git+https://github.com/episource/unbound#branch=dev/all-merged/main"
+source=("$distname::git+https://github.com/episource/unbound#branch=dev/all-merged/v1.6.1"
         'service'
         'hook'
         'conf')
@@ -29,20 +29,8 @@ sha256sums=('SKIP'
 
 install=install
 
-pkgver() {
-    cd "${srcdir}/${distname}"
-    
-    version=$( ./configure --version | head -1 | awk '{ print $3 }' )
-    rnum=$( git rev-list --count --first-parent HEAD )
-    rev=$( git rev-parse --short HEAD )
-    
-    echo "$version.r$rnum.$rev"
-}
-
 prepare() {
     cd "${srcdir}/${distname}"
-
-    ver=$( pkgver )
     rev_date=$( git log -1 --format="%ad" --date=format:"%b %e, %Y" )
     
     files=( 
@@ -53,7 +41,7 @@ prepare() {
     )
     
     for f in "${files[@]}"; do
-        sed -i "s/@version@/$ver/g;s/@date@/$rev_date/g" "$f"
+        sed -i "s/@version@/$pkgver/g;s/@date@/$rev_date/g" "$f"
     done
 }
 
