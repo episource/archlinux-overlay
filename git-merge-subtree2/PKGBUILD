@@ -1,7 +1,7 @@
 # Maintainer: Philipp Serr <episource@gmx.de>
 
 pkgname=git-merge-subtree2
-pkgver=0.3.0
+pkgver=0.3.1
 pkgrel=0
 pkgdesc="Tracking of subdirectories from other branches: a subtree-like merge strategy and a custom subproject git command."
 arch=('x86_64')
@@ -11,7 +11,7 @@ depends=('bash' 'git' )
 makedepends=( )
 optdepends=( )
 source=("https://github.com/episource/$pkgname/releases/download/v$pkgver/$pkgname.zip")
-sha256sums=('a9d0ea0800c727a81fad6db3a3dc65d72e948cdcedb544c54df30812499cb402')
+sha256sums=('73007d3ba5aeece33df78e06356379e53c87eb198f40bcf8e50a38e9740e0f1f')
 
 package() {
   cd "$srcdir"
