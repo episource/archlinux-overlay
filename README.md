@@ -23,15 +23,15 @@ Currently all packages are rebuild when going this way. The resulting repository
 
 ```
 [archlinux-overlay]
-Server = http(s)://gitlab.your-host.local/your-group/$repo/builds/<build_id>/artifacts/file/
+Server = http(s)://gitlab.your-host.local/your-group/$repo/-/jobs/<build_id>/artifacts/raw/
 SigLevel = Optional TrustAll
 
 # Gitlab's only way to provide a direct link to the latest build requires adding
 # a query string to the url, which is not suitable for pacman.
 # See issue gitlab-org/gitlab-ce#22536.
 # Workaround: provide entries for future builds! Urls are tried sequentially.
-# Server = http(s)://gitlab.your-host.local/your-group/$repo/builds/<build_id - 1>/artifacts/file/
-# Server = http(s)://gitlab.your-host.local/your-group/$repo/builds/<build_id - 2>/artifacts/file/
+# Server = http(s)://gitlab.your-host.local/your-group/$repo/-/jobs/<build_id - 1>/artifacts/raw/
+# Server = http(s)://gitlab.your-host.local/your-group/$repo/-/jobs/<build_id - 2>/artifacts/raw/
 # ...
 ```
 
