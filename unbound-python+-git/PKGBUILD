@@ -7,7 +7,7 @@
 distname=unbound
 pkgname=$distname-python+-git
 pkgver=1.6.1.r3802.c0cb0c17
-pkgrel=2
+pkgrel=3
 pkgdesc='Validating, recursive, and caching DNS resolver with python scripting and custom patches.'
 url='https://unbound.net/'
 license=('custom:BSD')
