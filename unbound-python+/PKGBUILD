@@ -6,8 +6,8 @@
 
 distname=unbound
 pkgname=$distname-python+
-pkgver=1.6.1
-pkgrel=4
+pkgver=1.6.4
+pkgrel=1
 pkgdesc='Validating, recursive, and caching DNS resolver with python scripting and custom patches.'
 url='https://unbound.net/'
 license=('custom:BSD')
@@ -18,7 +18,7 @@ depends=('dnssec-anchors' 'ldns' 'libevent' 'openssl' 'python2')
 provides=("$distname=$pkgver" "$distname-python=$pkgver")
 conflicts=("$distname" "$distname-python")
 backup=('etc/unbound/unbound.conf')
-source=("$distname::git+https://github.com/episource/unbound#branch=dev/all-merged/v1.6.1"
+source=("$distname::git+https://github.com/episource/unbound#branch=dev/all-merged/v1.6.4"
         'service'
         'hook'
         'conf')
@@ -46,36 +46,36 @@ prepare() {
 }
 
 build() {
-	cd "${srcdir}/${distname}"
+    cd "${srcdir}/${distname}"
     
-
-	# Build against embedded flex instead of system one, see:
-	# https://www.nlnetlabs.nl/bugs-script/show_bug.cgi?id=1223
-	export LEX=:
+    
+    # Build against embedded flex instead of system one, see:
+    # https://www.nlnetlabs.nl/bugs-script/show_bug.cgi?id=1223
+    export LEX=:
 
     PYTHON_VERSION=2.7 ./configure \
-		--prefix=/usr \
-		--sysconfdir=/etc \
-		--localstatedir=/var \
-		--sbindir=/usr/bin \
-		--disable-rpath \
-		--enable-pie \
-		--enable-relro-now \
-		--with-conf-file=/etc/unbound/unbound.conf \
-		--with-pidfile=/run/unbound.pid \
-		--with-rootkey-file=/etc/trusted-key.key \
-		--with-libevent \
+        --prefix=/usr \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --sbindir=/usr/bin \
+        --disable-rpath \
+        --enable-pie \
+        --enable-relro-now \
+        --with-conf-file=/etc/unbound/unbound.conf \
+        --with-pidfile=/run/unbound.pid \
+        --with-rootkey-file=/etc/trusted-key.key \
+        --with-libevent \
         --with-pythonmodule \
     
-	make
+    make
 }
 
 package() {
-	cd "${srcdir}/${distname}"
-	make DESTDIR="${pkgdir}" install
-	install -Dm644 doc/example.conf.in "${pkgdir}/etc/unbound/unbound.conf.example"
-	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
-	install -Dm644 ../service "${pkgdir}/usr/lib/systemd/system/unbound.service"
-	install -Dm644 ../hook "${pkgdir}/usr/share/libalpm/hooks/unbound-key.hook"
-	install -Dm644 ../conf "${pkgdir}/etc/unbound/unbound.conf"
+    cd "${srcdir}/${distname}"
+    make DESTDIR="${pkgdir}" install
+    install -Dm644 doc/example.conf.in "${pkgdir}/etc/unbound/unbound.conf.example"
+    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    install -Dm644 ../service "${pkgdir}/usr/lib/systemd/system/unbound.service"
+    install -Dm644 ../hook "${pkgdir}/usr/share/libalpm/hooks/unbound-key.hook"
+    install -Dm644 ../conf "${pkgdir}/etc/unbound/unbound.conf"
 }
