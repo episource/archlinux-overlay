@@ -1,5 +1,5 @@
-
-# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Maintainer: Philipp Serr <episource@gmx.org>
+# Contributor: Tobias Powalowski <tpowa@archlinux.org>
 # Contributor: judd <jvinet@zeroflux.org>
 # Contributor: Michael Hansen <zrax0111 gmail com>
 # Contributor: Marco A Rojas <marquicus at gmail.com>
@@ -8,18 +8,18 @@
 # Contributor: Adam Russell <adamlr6+arch@gmail.com>
 # Contributor: Dhananjay Sathe <dhananjaysathe@gmail.com>
 
-pkgbase=samba
-pkgname=('libwbclient' 'smbclient' 'samba')
-pkgver=4.6.6
+distname=samba
+pkgname=('smbclient-wsp' 'samba-wsp')
+pkgver=4.6.5
 pkgrel=1
 arch=(i686 x86_64)
 url="http://www.samba.org"
 license=('GPL3')
 makedepends=('python2' 'docbook-xsl' 'pkg-config' 'libbsd' 'db' 'popt' 'libcups' 
              'readline' 'tevent' 'acl' 'libldap' 'libcap' 'ldb>=1.1.15' 'krb5' 'pam' 'systemd' 
-             'gamin' 'gnutls>=2.4.1' 'talloc' 'tdb' 'dbus' 'libaio' 'perl-parse-yapp')
-source=(http://us1.samba.org/samba/ftp/stable/${pkgbase}-${pkgver}.tar.gz
-        http://us1.samba.org/samba/ftp/stable/${pkgbase}-${pkgver}.tar.asc
+             'gamin' 'gnutls>=2.4.1' 'talloc' 'tdb' 'dbus' 'libaio' 'perl-parse-yapp'
+             'tracker' "libwbclient=$pkgver")
+source=("$distname-$pkgver::git+file:///home/philipp/Documents/Scratch/samba-wsp#branch=dev/samba-wsp/rev-03b91d38022/v${pkgver}"
         samba.logrotate
         samba.pam
         samba.service
@@ -30,6 +30,17 @@ source=(http://us1.samba.org/samba/ftp/stable/${pkgbase}-${pkgver}.tar.gz
         smbd@.service
         winbindd.service
         samba.conf)
+md5sums=('SKIP'
+         '5697da77590ec092cc8a883bae06093c'
+         '96f82c38f3f540b53f3e5144900acf17'
+         'ee4763a656cf00d92bfda31b6bb2c5cb'
+         '6c447748a064d631435dbef0a3dcf32f'
+         '454136a91dbdabd9558552808c4afdd8'
+         'a78b9aa93eb14b0ac445897395693225'
+         'df6380c73cb73163968eabc8650f7358'
+         '70afd2db60a2e8eff7615dbdecd887ac'
+         'd5f56f43e1280bba20f6bbd88d16fa41'
+         '49abd7b719e3713a3f75a8a50958e381')
 validpgpkeys=('52FBC0B86D954B0843324CDC6F33915B6568B7EA') #Samba Distribution Verification Key <samba-bugs@samba.org>
 ### UNINSTALL dmapi package before building!!!
 
@@ -68,7 +79,7 @@ _samba4_auth_modules=auth_unix,auth_wbc,auth_server,auth_netlogond,auth_script,a
               --prefix=/usr \
               --sbindir=/usr/bin \
               --libdir=/usr/lib \
-	      --libexecdir=/usr/lib/samba \
+	          --libexecdir=/usr/lib/samba \
               --localstatedir=/var \
               --with-configdir=/etc/samba \
               --with-lockdir=/var/cache/samba \
@@ -83,7 +94,8 @@ _samba4_auth_modules=auth_unix,auth_wbc,auth_server,auth_netlogond,auth_script,a
               --with-pammodulesdir=/usr/lib/security \
               --bundled-libraries=!tdb,!talloc,!pytalloc-util,!tevent,!popt,!ldb,!pyldb-util \
               --with-shared-modules=${_samba4_idmap_modules},${_samba4_pdb_modules},${_samba4_auth_modules} \
-              --disable-rpath-install
+              --disable-rpath-install \
+              --enable-wsp
 
               # Add this to the options once it's working...
                #--with-system-mitkrb5 /opt/heimdal
@@ -94,30 +106,16 @@ _samba4_auth_modules=auth_unix,auth_wbc,auth_server,auth_netlogond,auth_script,a
   if [ ! -e ${_pkgsrc}/usr/bin/smbtar ]; then
       install -m755 ${srcdir}/samba-${pkgver}/source3/script/smbtar ${_pkgsrc}/usr/bin/
   fi
+  
+  # Remove files that are part of libwbclient
+  pacman -Ql libwbclient | awk '{ print $2 }' | sort -r |
+      sed -r 's/(\/usr\/share\/man.*)\.gz/\1/g' | 
+      xargs -l1 -i{} rm -d ${_pkgsrc}{} ||:
 }
 
-package_libwbclient() {
-pkgdesc="Samba winbind client library"
-depends=('glibc' 'libbsd')
-  # Use samba-pkg as a staging directory for the split packages
-  # (This is so RPATHS and symlinks are generated correctly via
-  # make install, but the otherwise unsplit pieces can be split)
-  _pkgsrc=${srcdir}/samba-pkg
-  install -d -m755 ${pkgdir}/usr/lib
-  mv ${_pkgsrc}/usr/lib/libwbclient*.so* ${pkgdir}/usr/lib/
-
-  install -d -m755 ${pkgdir}/usr/lib/samba
-  mv ${_pkgsrc}/usr/lib/samba/libwinbind-client*.so* ${pkgdir}/usr/lib/samba/
-  mv ${_pkgsrc}/usr/lib/samba/libreplace-samba4.so* ${pkgdir}/usr/lib/samba/
-
-  install -d -m755 ${pkgdir}/usr/lib/pkgconfig
-  mv ${_pkgsrc}/usr/lib/pkgconfig/wbclient.pc ${pkgdir}/usr/lib/pkgconfig/
-
-  install -d -m755 ${pkgdir}/usr/include/samba-4.0
-  mv ${_pkgsrc}/usr/include/samba-4.0/wbclient.h ${pkgdir}/usr/include/samba-4.0/
-}
-
-package_smbclient() {
+package_smbclient-wsp() {
+provides=('smbclient')
+conflicts=('smbclient')
 pkgdesc="Tools to access a server's filespace and printers via SMB"
 depends=('popt' 'cifs-utils' 'tdb' "libwbclient>=$pkgver" 'ldb'
          'tevent' 'libgcrypt' 'python2' 'talloc' 'readline' 'gnutls' 
@@ -173,10 +171,13 @@ depends=('popt' 'cifs-utils' 'tdb' "libwbclient>=$pkgver" 'ldb'
     ln -sf /usr/bin/smbspool ${pkgdir}/usr/lib/cups/backend/smb
 }
 
-package_samba() {
+package_samba-wsp() {
+provides=('samba')
+conflicts=('samba')
 pkgdesc="SMB Fileserver and AD Domain server"
 depends=('db>=4.7' 'popt' 'libcups' 'libcap>=2.16' 'gamin' 'gnutls>=2.4.1'
-         'talloc' 'ldb' 'libbsd' 'python2' 'iniparser' 'tdb' 'libaio' 'perl-parse-yapp' "smbclient>=$pkgver")
+         'talloc' 'ldb' 'libbsd' 'python2' 'iniparser' 'tdb' 'libaio'
+         'perl-parse-yapp' "smbclient-wsp>=$pkgver")
 backup=(etc/logrotate.d/samba
         etc/pam.d/samba
         etc/samba/smb.conf
@@ -243,15 +244,3 @@ sys.path.insert(0, '/usr/lib/python${_pyver}/site-packages')" \
   # copy ldap example
   install -D -m644 ${srcdir}/samba-${pkgver}/examples/LDAP/samba.schema ${pkgdir}/usr/share/doc/samba/examples/LDAP/samba.schema
 }
-md5sums=('04493bbe8d71e52393dffdbba301697d'
-         'SKIP'
-         '5697da77590ec092cc8a883bae06093c'
-         '96f82c38f3f540b53f3e5144900acf17'
-         'ee4763a656cf00d92bfda31b6bb2c5cb'
-         '6c447748a064d631435dbef0a3dcf32f'
-         'e4ae6a3cac080602120aa151918c4a36'
-         'a78b9aa93eb14b0ac445897395693225'
-         'df6380c73cb73163968eabc8650f7358'
-         '70afd2db60a2e8eff7615dbdecd887ac'
-         'd5f56f43e1280bba20f6bbd88d16fa41'
-         '49abd7b719e3713a3f75a8a50958e381')

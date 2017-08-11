@@ -5,6 +5,12 @@ After=network.target nmbd.service winbindd.service
 [Service]
 Type=forking
 PIDFile=/var/run/smbd.pid
+Environment="TRACKER_BUS_TYPE=system"
+Environment="TRACKER_USE_CONFIG_FILES=true"
+Environment="XDG_CONFIG_HOME=/etc"
+Environment="XDG_CACHE_HOME=/var/cache"
+Environment="XDG_DATA_HOME=/var/cache"
+Environment="XDG_RUNTIME_DIR=/var/run"
 ExecStart=/usr/bin/smbd -D
 ExecReload=/bin/kill -HUP $MAINPID
 
