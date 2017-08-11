@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.Tracker1.Writeback
+Exec=/bin/false
+SystemdService=dbus-org.freedesktop.Tracker1.Writeback.service

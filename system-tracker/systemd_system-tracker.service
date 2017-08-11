@@ -1,0 +1,14 @@
+[Unit]
+Description=System-wide tracker meta service (enables/disables all services at once)
+Requires=system-tracker-extract.service system-tracker-miner-fs.service system-tracker-store.service system-tracker-writeback.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/bin/true
+
+[Install]
+Also=system-tracker-extract.service
+Also=system-tracker-miner-fs.service
+Also=system-tracker-store.service
+Also=system-tracker-writeback.service

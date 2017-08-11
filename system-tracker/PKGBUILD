@@ -1,0 +1,89 @@
+# Maintainer: Philipp Serr <episource@gmx.org>
+
+
+pkgname=system-tracker
+pkgver=1.0.0
+pkgrel=1
+pkgdesc='Tracker as system service.'
+#license=()
+arch=('any')
+makedepends=()
+optdepends=()
+depends=('tracker')
+source=('bin_system-tracker'
+        'config_tracker-miner-fs.cfg'
+        'dbus_org.freedesktop.Tracker1.conf'
+        'dbus_org.freedesktop.Tracker1.service'
+        'dbus_org.freedesktop.Tracker1.Miner.Extract.service'
+        'dbus_org.freedesktop.Tracker1.Miner.Files.service'
+        'dbus_org.freedesktop.Tracker1.Writeback.service'
+        'systemd_system-tracker.service'
+        'systemd_system-tracker-extract.service'
+        'systemd_system-tracker-miner-fs.service'
+        'systemd_system-tracker-store.service'
+        'systemd_system-tracker-writeback.service')
+sha1sums=('SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP'
+          'SKIP')
+backup=('etc/tracker/tracker-miner-fs.cfg')
+          
+prepare() {
+    cd "${srcdir}"
+    
+    mkdir -p bin
+    for bin_file in $(ls bin_*); do
+        mv "$bin_file" "bin/${bin_file#bin_}"
+    done
+    
+    mkdir -p config
+    for cfg_file in $(ls config_*); do
+        mv "$cfg_file" "config/${cfg_file#config_}"
+    done
+    
+    mkdir -p dbus
+    for dbus_file in $(ls dbus_*); do
+        mv "$dbus_file" "dbus/${dbus_file#dbus_}"
+    done
+    
+    mkdir -p systemd
+    for systemd_file in $(ls systemd_*); do
+        mv "$systemd_file" "systemd/${systemd_file#systemd_}"
+    done
+}
+
+package() {
+	cd "${srcdir}"
+    
+    install -D -m755 -t "${pkgdir}/usr/bin" \
+        bin/system-tracker
+    
+    install -D -m644 -t "${pkgdir}/usr/share/dbus-1/system-services" \
+        dbus/org.freedesktop.Tracker1.service \
+        dbus/org.freedesktop.Tracker1.Miner.Extract.service \
+        dbus/org.freedesktop.Tracker1.Miner.Files.service \
+        dbus/org.freedesktop.Tracker1.Writeback.service
+        
+    install -D -m644 -t "${pkgdir}/etc/dbus-1/system.d" \
+        dbus/org.freedesktop.Tracker1.conf
+        
+    install -D -m644 -t "${pkgdir}/usr/lib/systemd/system" \
+        systemd/system-tracker.service \
+        systemd/system-tracker-extract.service \
+        systemd/system-tracker-miner-fs.service \
+        systemd/system-tracker-store.service \
+        systemd/system-tracker-writeback.service
+        
+    install -D -m644 -t "${pkgdir}/etc/tracker" \
+        config/tracker-miner-fs.cfg
+        
+    install -d -m700 "${pkgdir}/var/cache/tracker"
+}

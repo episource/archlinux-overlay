@@ -1,0 +1,22 @@
+[Unit]
+Description=Tracker file system data miner (system wide, not per user)
+
+[Service]
+Type=dbus
+BusName=org.freedesktop.Tracker1.Miner.Files
+Environment="TRACKER_BUS_TYPE=system"
+Environment="TRACKER_USE_CONFIG_FILES=true"
+Environment="XDG_CONFIG_HOME=/etc"
+Environment="XDG_CACHE_HOME=/var/cache"
+Environment="XDG_DATA_HOME=/var/cache"
+Environment="XDG_RUNTIME_DIR=/var/run"
+RuntimeDirectory=tracker
+RuntimeDirectoryMode=0700
+ExecStart=/usr/lib/tracker/tracker-miner-fs -v 2
+Restart=on-failure
+# Don't restart after tracker daemon -k (aka tracker-control -k)
+RestartPreventExitStatus=SIGKILL
+
+[Install]
+Alias=dbus-org.freedesktop.Tracker1.Miner.Files.service
+WantedBy=multi-user.target

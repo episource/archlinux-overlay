@@ -1,0 +1,2 @@
+#!/bin/bash
+TRACKER_BUS_TYPE=system TRACKER_USE_CONFIG_FILES=true XDG_CONFIG_HOME=/etc XDG_CACHE_HOME=/var/cache XDG_DATA_HOME=/var/cache XDG_RUNTIME_DIR=/var/run exec tracker "$@"
