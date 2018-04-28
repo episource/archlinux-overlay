@@ -18,7 +18,7 @@ depends=('openssl' 'ldns' 'libevent' 'fstrm' 'protobuf-c' 'dnssec-anchors' 'pyth
 provides=("$distname=$pkgver" "$distname-python=$pkgver")
 conflicts=("$distname" "$distname-python")
 backup=('etc/unbound/unbound.conf')
-source=("$distname::git+https://github.com/episource/unbound#branch=dev/all-merged/v1.6.4"
+source=("$distname::git+https://github.com/episource/unbound#branch=dev/all-merged/v${pkgver}"
         'sysusers.d'
         'tmpfiles.d'
         'service'
