@@ -48,7 +48,7 @@ prepare() {
 }
 
 build() {
-....cd "${srcdir}/${distname}"
+    cd "${srcdir}/${distname}"
     PYTHON_VERSION=2.7 ./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc \
