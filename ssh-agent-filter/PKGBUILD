@@ -1,16 +1,16 @@
 # Maintainer: Philipp Serr <episource@gmx.de>
 
 pkgname=ssh-agent-filter
-pkgver=0.4.1
+pkgver=0.4.3
 pkgrel=0
 pkgdesc="filtering proxy for ssh-agent meant to be forwarded to untrusted servers"
 arch=('x86_64')
-url="http://validator.github.io"
+url="https://github.com/episource/ssh-agent-filter"
 license=('GPL3')
 depends=('bash' 'boost-libs' 'openssh')
 makedepends=('boost' 'help2man' 'pandoc')
 optdepends=('dialog')
-source=("git+https://github.com/tiwe-de/${pkgname}.git#tag=${pkgver}")
+source=("git+https://github.com/episource/${pkgname}.git#tag=${pkgver}")
 md5sums=('SKIP')
 
 build() {
