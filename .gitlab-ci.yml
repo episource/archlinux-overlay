@@ -1,4 +1,4 @@
-image: nfnty/arch-devel:latest
+image: base/devel:latest
 
 variables:
   REPONAME: "archlinux-overlay"
