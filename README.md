@@ -48,7 +48,7 @@ Now the repository is updated as such:
 
 ```bash
 mkdir -p _repo && OWNER=$(stat -c%u:%g _repo) && PERM=$(stat -c%a _repo) && \
-gitlab-ci-multi-runner exec docker --pre-build-script "export REPODIR=/repo && chown -R nobody /repo && chmod -R u+rwx /repo" --docker-volumes "$PWD/_repo:/repo" build_repo; \
+gitlab-runner exec docker --pre-build-script "export REPODIR=/repo && chown -R nobody /repo && chmod -R u+rwx /repo" --docker-volumes "$PWD/_repo:/repo" build_repo; \
 chown -R $OWNER _repo && chmod -R $PERM _repo
 ```
 

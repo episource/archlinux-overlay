@@ -3,6 +3,7 @@ image: base/devel:latest
 variables:
   REPONAME: "archlinux-overlay"
   REPODIR: "$CI_PROJECT_DIR"
+  BUILDDIR: "/home/nobody/build"
 
   
 before_script:
@@ -22,7 +23,8 @@ before_script:
   - "echo 'nobody ALL=(ALL) NOPASSWD: /usr/bin/pacman' >> /etc/sudoers"
   
   # a writable home-directory is needed by import-validpgpkeys.sh
-  - mkdir -p /home/nobody && chown -R nobody /home/nobody
+  # additionally the build directory must be owned by the user doing makepkg
+  - mkdir -p /home/nobody/build && chown -R nobody /home/nobody
   - usermod -d /home/nobody nobody
   
   # import pgp keys flagged as valid
