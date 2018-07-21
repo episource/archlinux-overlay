@@ -17,6 +17,7 @@ function _log() {
     
     case "${type}" in
         failure) echo -e "$red$msg$normal" ;;
+        warn) echo -e "$yellow$msg$normal" ;;
         success) echo -e "$green$msg$normal" ;;
         build_step) echo -e "$green$msg$normal" ;;
         command) echo -e "$cyan$msg$normal" ;;
@@ -25,11 +26,31 @@ function _log() {
 }
 
 # Execute command and stop execution if the command fails
+# Pass expected_code=exit_code[,exit_code][,exit_code][...] to define a list of
+# expected exit codes, that indicate that the operation was successful.
+# The default is 0.
 function _do() {
-    CMD=$@
+    CMD="$@"
+    WANTED_RESULT=( 0 )
+    
+    if [[ "$1" == "expected_code="* ]]; then
+        CMD="${@:2}"
+        WANTED_RESULT="${1#expected_code=}"
+        WANTED_RESULT=( ${WANTED_RESULT//,/ } )
+    fi
+    
     _log command "$CMD"
-    $CMD || { _log failure "FAILED: $CMD"; exit 1; }
-    return $?
+    $CMD
+    RESULT=$?
+    
+    for w in ${WANTED_RESULT[@]}; do
+        if [[ "$RESULT" -eq $w ]]; then
+            return $RESULT
+        fi
+    done
+    
+    _log failure "FAILED (Exit Code $RESULT): $CMD";
+    exit 1;
 }
 
 # Ensure that the given environment variable has been defined and is not empty
@@ -115,17 +136,49 @@ function sort_packages_by_dependency() {
     PACKAGES=("${sorted_packages[@]}")
 }
 
+# Updates or initializes the repository database
+function update_repo() {
+    _log build_step "Updating repository: $_REPO"
+    
+    mkdir -p "$REPODIR"
+    _REPO="$REPODIR/$REPONAME"
+    
+    shopt -s nullglob
+    _do repo-add --new --remove "$_REPO.db.tar.xz" "$REPODIR"/*.pkg.tar.xz
+    shopt -u nullglob
+    
+    [[ ! -f "$_REPO.db" ]] \
+        && _do ln -s "$_REPO.db.tar.xz" "$_REPO.db"
+    [[ ! -f "$_REPO.files" ]] \
+        && _do ln -s "$_REPO.files.tar.xz" "$_REPO.files"
+        
+    # Update pacman pkg database
+    sudo pacman -Sy
+    
+    _log success "Done updating repository!"
+}
+
 # Build all packages defined in array variable PACKAGES
 #   builds all $PACKAGES in the given order
 function build_packages() {
     _log build_step "Start building packages: ${PACKAGES[@]}"
-    _do mkdir -p "$REPODIR"
     
     for p in "${PACKAGES[@]}"; do
+        #if [[ -f "$REPODIR/$p.pkg.tar.xz" ]]; then
+        #    _log 
+        #    continue
+        #fi
+    
         cd $p
         _log command "Building pkg: $p"
         PKGEXT=".pkg.tar.xz" PKGDEST="$REPODIR" \
-            _do makepkg --install --noconfirm --nosign --syncdeps --cleanbuild
+            _do expected_code=0,13 makepkg --noconfirm --nosign --syncdeps --rmdeps --cleanbuild
+            
+        if [[ $? -eq 13 ]]; then
+            _log warn "Skipping pkg (already built): $p"
+        fi
+        
+        update_repo
         cd - > /dev/null
     done
     

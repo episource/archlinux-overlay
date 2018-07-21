@@ -7,14 +7,19 @@ variables:
 
   
 before_script:
+  # Update build environment
   - pacman -Syu --noconfirm
+  
+  # Install various vcs packages needed to fetch sources of some PKGBUILDs
+  - pacman -S --noconfirm git svn mercurial
 
   # flex 2.6.3 is severly broken / incompatible
   # see e.g. https://github.com/westes/flex/issues/162
-  - "if [[ $( pacman -Q flex ) == *2.6.3* ]]; then
-       curl https://archive.archlinux.org/packages/f/flex/flex-2.6.1-1-x86_64.pkg.tar.xz -o /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
-       pacman --noconfirm -U /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
-     fi"
+  - |
+    if [[ $( pacman -Q flex ) == *2.6.3* ]]; then # downgrade broken flex
+      curl https://archive.archlinux.org/packages/f/flex/flex-2.6.1-1-x86_64.pkg.tar.xz -o /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
+      pacman --noconfirm -U /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
+    fi
   
   # The repository build script is run by user 'nobody'. The build scripts needs
   # to install dependencies using pacman. This requires root permissions.
@@ -30,21 +35,30 @@ before_script:
   # import pgp keys flagged as valid
   - sudo -u nobody -E -H .build-bin/import-validpgpkeys.sh
   
+  - |
+    # add repository for locally built packages
+    echo "[$REPONAME]
+    Server = file://$REPODIR
+    SigLevel = Optional TrustAll" >> /etc/pacman.conf
+    
+    sudo -u nobody -E -H .build-bin/update-repo.sh
+  
   
 build_repo:
   script:
     # the build script can't be run as root, as makepkg would complain...
     - sudo -u nobody -E -H .build-bin/build.sh
     
-    # prepare & publish repository index
+    # publish repository index
     # -> pacman expects files without tar.xz prefix,
-    #    replace existing symlinks for artifacts upload (only)
+    # -> webfronted of gitlab ci does not handle symlinks
+    # => replace existing symlinks for artifacts upload (only)
     #    keep symlinks when building locally without artifact upload
-    - sudo -u nobody -E -H .build-bin/deploy.sh
-    - "if [[ -n $CI_PROJECT_URL ]]; then
-         mv --force $REPONAME.db.tar.xz $REPONAME.db; fi"
-    - "if [[ -n $CI_PROJECT_URL ]]; then
-         mv --force $REPONAME.files.tar.xz $REPONAME.files; fi"
+    - |
+      if [[ -n $CI_PROJECT_URL ]]; then # Prepare repo index for publishing
+        mv --force $REPONAME.db.tar.xz $REPONAME.db
+        mv --force $REPONAME.files.tar.xz $REPONAME.files
+      fi
     
   artifacts:
     # expire artifacts per default - the gitlab web frontend can be used to keep
