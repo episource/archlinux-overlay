@@ -45,6 +45,9 @@ before_script:
   
   
 build_repo:
+  tags:
+    - archlinux
+
   script:
     # the build script can't be run as root, as makepkg would complain...
     - sudo -u nobody -E -H .build-bin/build.sh
