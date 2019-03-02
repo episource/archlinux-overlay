@@ -1,4 +1,4 @@
-image: base/devel:latest
+image: archlinux/base:latest
 
 variables:
   REPONAME: "archlinux-overlay"
