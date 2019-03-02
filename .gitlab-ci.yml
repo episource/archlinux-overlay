@@ -11,7 +11,7 @@ before_script:
   - pacman -Syu --noconfirm
   
   # Install various vcs packages needed to fetch sources of some PKGBUILDs
-  - pacman -S --noconfirm git svn mercurial
+  - pacman -S --noconfirm base-devel sudo git svn mercurial
 
   # flex 2.6.3 is severly broken / incompatible
   # see e.g. https://github.com/westes/flex/issues/162
