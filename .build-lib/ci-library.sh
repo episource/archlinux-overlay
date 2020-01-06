@@ -116,14 +116,16 @@ function list_packages() {
 # extracts all 'validpgpkeys' from the PKGBUILDs
 #   extracts all 'validpgpkeys' listed in the PKGBUILDs belonging to $PACKAGES
 function get_validpgpkeys() {
-    _VALIDPGPKEYS=()
+    local -A _VALIDPGPKEYS
     for p in "${PACKAGES[@]}"; do
         local validpgpkeys=()
         _package_info "$p" validpgpkeys
-        _VALIDPGPKEYS+=$validpgpkeys
+        for key in "${validpgpkeys[@]}"; do
+           _VALIDPGPKEYS["$key"]=1
+        done
     done
     
-    echo "${_VALIDPGPKEYS[@]}"
+    echo "${!_VALIDPGPKEYS[*]}"
 }
 
 # Sort packages by dependency
