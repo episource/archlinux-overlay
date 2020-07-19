@@ -20,7 +20,7 @@ sha1sums=('SKIP')
 
 pkgver() {
     cd "${srcdir}/${distname}"
-    git describe --long | sed -r -e 's/^v//' -e 's/-([0-9]+)-/.r\1./'
+    git describe --tags --long | sed -r -e 's/^v//' -e 's/-([0-9]+)-/.r\1./'
 }
 
 package() {
