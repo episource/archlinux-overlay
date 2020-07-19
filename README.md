@@ -52,6 +52,9 @@ gitlab-runner exec docker --pre-build-script "export REPODIR=/repo && chown -R n
 chown -R $OWNER _repo && chmod -R $PERM _repo
 ```
 
+### Configuration options when using gitlab-ci and gitlab-runner
+Set the environment variable `PACMAN_MIRROR` to change builtin default pacman mirror. This can be done using the gitlab web UI for CI jobs or by using gitlab runner argument `--env`. Take care to escape `$` by doubling it, e.g. `$$repo`.
+
 ### ... using a custom build environment
 The build environment needs to be based on [Arch Linux](https://wiki.archlinux.org/index.php/Arch_Linux). If a dockerized build environment is an option, take a look at the docker image [`nfnty/arch-devel`](https://hub.docker.com/r/nfnty/arch-devel/), which is a good point to start.
 

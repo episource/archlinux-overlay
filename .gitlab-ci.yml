@@ -12,6 +12,13 @@ variables:
 
   
 before_script:
+  # Change builtin default pacman mirror
+  - |
+    if [[ -n "$PACMAN_MIRROR" ]]; then
+        echo "Using custom pacman mirror: $PACMAN_MIRROR"
+        echo "Server = $PACMAN_MIRROR" > /etc/pacman.d/mirrorlist
+    fi
+
   # Update build environment
   - pacman -Syu --noconfirm
   
