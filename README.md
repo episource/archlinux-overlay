@@ -19,7 +19,7 @@ This repository already includes a pre-configured [.gitlab-ci.yml](https://docs.
 
 **All you need to do:** Read about [the gitlab runner](https://docs.gitlab.com/runner/) and [using docker images](https://docs.gitlab.com/ce/ci/docker/using_docker_images.html) to configure GitLab and GitLab-CI, such that a docker runner and the docker image [`nfnty/arch-devel:latest`](https://hub.docker.com/r/nfnty/arch-devel/) are available to your `archlinux-overlay` gitlab project.
 
-Currently all packages are rebuild when going this way. The resulting repository is available for [download as a tar or zip archive](https://gitlab.com/help/user/project/builds/artifacts.md#downloading-build-artifacts), but can also be made available to pacman directly: Just append the snippet below to [/etc/pacman.conf](https://www.archlinux.org/pacman/pacman.conf.5.html) and adjust the `build-id` and url. Sadly, until [gitlab-org/gitlab-ce#22536](https://gitlab.com/gitlab-org/gitlab-ce/issues/22536) is implemented, there's no simple way to refer to the most recent `master`-branch build directly. 
+Currently all packages are rebuild when going this way. The resulting repository is available for [download as a tar or zip archive](https://gitlab.com/help/user/project/builds/artifacts.md#downloading-build-artifacts), but can also be made available to pacman directly: Just append the snippet below to [/etc/pacman.conf](https://www.archlinux.org/pacman/pacman.conf.5.html) and adjust the `build-id` and url. Sadly, until [gitlab-org/gitlab-ce#22536](https://gitlab.com/gitlab-org/gitlab-ce/issues/22536) is implemented, there's no simple way built into gitlab to refer to the most recent `master`-branch build directly. 
 
 ```
 [archlinux-overlay]
@@ -34,6 +34,8 @@ SigLevel = Optional TrustAll
 # Server = http(s)://gitlab.your-host.local/your-group/$repo/-/jobs/<build_id - 2>/artifacts/raw/
 # ...
 ```
+
+... a more comfortable way would be setting up a reverse proxy with a rewrite rule similiar to the following nginx example: `rewrite ^/([^/]*)/([^/]*)/_artifacts/branch/(.*)/job/(.*)/(browse|download|raw)(/.*)? /$1/$2/-/jobs/artifacts/$3/$5$6?job=$4 break;` => `https://gitlab.example.com/episource/archlinux-overlay/_artifacts/branch/master/job/build_repo/raw/`
 
 Build artifacts (the repository) are deleted automatically after one week. Goto to the [build's page](https://gitlab.com/help/user/project/builds/artifacts.md#browsing-build-artifacts) and choose "keep" to preserve the repository for an unlimited time.
 
