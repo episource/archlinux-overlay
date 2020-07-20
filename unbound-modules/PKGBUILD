@@ -10,7 +10,7 @@ url='https://github.com/episource/${distname}'
 license=('custom:APACHE')
 arch=('any')
 makedepends=()
-optdepends=('unbound-python+: recursive forward rules and other advanced features')
+optdepends=()
 depends=('unbound-python')
 provides=("$distname=$pkgver")
 conflicts=("$distname")
