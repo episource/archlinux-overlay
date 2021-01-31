@@ -22,7 +22,7 @@ validpgpkeys=('EDFAA3F2CA4E6EB05681AF8E9F6F1C2D7E045F8D'
               '21615A7F2478EA8C27DD26B830918D8275724222')
 source=("https://unbound.net/downloads/${distname}-${pkgver}.tar.gz"{,.asc}
         "${distname}-sysusers.conf"
-        "${distname}-tmpfiles.d"
+        "${distname}-tmpfiles.conf"
         "${distname}-trusted-key.hook")
 sha512sums=('d4f3c5a7df5d46f8b1ee32b61e68bdc0d63030820d236ecc51bc3ac356d15248acb9a5e0b6009e1936b03b751e8dd05a071a95ab239fdbbbb308442a59642ad5'
             'SKIP'
