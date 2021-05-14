@@ -7,8 +7,8 @@ variables:
   
   # If any of the variables KEYSERVER or KEYSERVER_CACERT is present,
   # system defaults will be overwritten. Both are optional.
-  KEYSERVER: "hkps://hkps.pool.sks-keyservers.net"
-  KEYSERVER_CACERT: "https://sks-keyservers.net/sks-keyservers.netCA.pem"
+  KEYSERVER: "hkps://keys.openpgp.org"
+  #KEYSERVER_CACERT: "https://x.y/z.pem"
 
   
 before_script:
