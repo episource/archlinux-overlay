@@ -1,10 +1,6 @@
-<<<<<<< yours
 # Maintainer: Philipp Serr <episource@gmx.org>
 # Contributor: David Runge <dvzrv@archlinux.org>
-=======
-# Maintainer: David Runge <dvzrv@archlinux.org>
-# Maintainer: Bruno Pagani <archange@archlinux.org>
->>>>>>> theirs
+# Contributor: Bruno Pagani <archange@archlinux.org>
 # Contributor: Gaetan Bisson <bisson@archlinux.org>
 # Contributor: Hisato Tatekura <hisato_tatekura@excentrics.net>
 # Contributor: Massimiliano Torromeo <massimiliano DOT torromeo AT google mail service>
@@ -24,7 +20,6 @@ optdepends=(
   'sh: for unbound-control-setup'
   'python: python-bindings'
 )
-<<<<<<< yours
 provides=('libunbound.so')
 backup=('etc/${distname}/${distname}.conf')
 source=("https://unbound.net/downloads/${distname}-${pkgver}.tar.gz"{,.asc}
