@@ -47,7 +47,7 @@ prepare() {
   sed '/# trust-anchor-file:/c\\ttrust-anchor-file: /etc/unbound/trusted-key.key' \
     -i doc/example.conf.in
   # backport https://github.com/NLnetLabs/unbound/pull/511
-  patch -Np1 -i ../"${pkgname}-1.13.2-fix_libpython_linking.patch"
+  patch -Np1 -i ../"${distname}-1.13.2-fix_libpython_linking.patch"
 
   autoreconf -vfi
 }
