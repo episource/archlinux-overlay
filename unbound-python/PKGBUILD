@@ -97,5 +97,5 @@ package() {
   install -vDm 644 ../${distname}-sysusers.conf "${pkgdir}"/usr/lib/sysusers.d/${distname}.conf
   install -vDm 644 ../${distname}-tmpfiles.conf "${pkgdir}"/usr/lib/tmpfiles.d/${distname}.conf
   # libalpm hook to copy the dnssec-anchors provided key to /etc/unbound
-  install -vDm 644 ../unbound-trusted-key.hook -t "${pkgdir}"/usr/share/libalpm/hooks/
+  install -vDm 644 ../${distname}-trusted-key.hook -t "${pkgdir}"/usr/share/libalpm/hooks/
 }
