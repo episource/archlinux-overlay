@@ -92,8 +92,6 @@ package() {
   make DESTDIR="${pkgdir}" install
   install -vDm 644 contrib/${distname}.service -t "${pkgdir}"/usr/lib/systemd/system/
   install -vDm 644 LICENSE -t "${pkgdir}"/usr/share/licenses/${distname}/
-  install -vDm 644 ${distname}-sysusers.conf "${pkgdir}"/usr/lib/sysusers.d/${distname}.conf
-  install -vDm 644 ${distname}-tmpfiles.conf "${pkgdir}"/usr/lib/tmpfiles.d/${distname}.conf
   install -vDm 644 ../${distname}-sysusers.conf "${pkgdir}"/usr/lib/sysusers.d/${distname}.conf
   install -vDm 644 ../${distname}-tmpfiles.conf "${pkgdir}"/usr/lib/tmpfiles.d/${distname}.conf
   # libalpm hook to copy the dnssec-anchors provided key to /etc/unbound
