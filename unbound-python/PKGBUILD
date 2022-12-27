@@ -47,7 +47,6 @@ validpgpkeys=(EDFAA3F2CA4E6EB05681AF8E9F6F1C2D7E045F8D) # W.C.A. Wijngaards <wou
 
 prepare() {
   # enable trusted-anchor-file and set it to an unbound specific location
-  patch -Np1 -i ../"${distname}-1.14.0-trust_anchor_file.patch"
   patch -p1 -d ${distname}-${pkgver} -i ../${distname}-1.14.0-trust_anchor_file.patch
   cd "${distname}-${pkgver}"
   autoreconf -fiv
