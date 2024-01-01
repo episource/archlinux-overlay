@@ -20,7 +20,7 @@ before_script:
     fi
 
   # Install most recent keyring
-  - pacman -Sy archlinux-keyring
+  - pacman -Sy --noconfirm archlinux-keyring
   
   # Update build environment
   - pacman -Su --noconfirm
