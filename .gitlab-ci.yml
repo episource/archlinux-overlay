@@ -19,6 +19,9 @@ before_script:
         echo "Server = $PACMAN_MIRROR" > /etc/pacman.d/mirrorlist
     fi
 
+  # Install most recent keyring
+  - pacman -S archlinux-keyring
+  
   # Update build environment
   - pacman -Syu --noconfirm
   
