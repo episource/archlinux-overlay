@@ -20,10 +20,10 @@ before_script:
     fi
 
   # Install most recent keyring
-  - pacman -S archlinux-keyring
+  - pacman -Sy archlinux-keyring
   
   # Update build environment
-  - pacman -Syu --noconfirm
+  - pacman -Su --noconfirm
   
   # Install various vcs packages needed to fetch sources of some PKGBUILDs
   - pacman -S --noconfirm base-devel sudo git svn mercurial
