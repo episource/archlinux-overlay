@@ -46,7 +46,7 @@ before_script:
   # a writable home-directory is needed by import-validpgpkeys.sh
   # additionally the build directory must be owned by the user doing makepkg
   - mkdir -p /home/nobody/build && chown -R nobody /home/nobody
-  - usermod -d /home/nobody nobody
+  - usermod -d /home/nobody -e '' nobody
   
   # import pgp keys flagged as valid
   - sudo -u nobody -E -H .build-bin/import-validpgpkeys.sh
