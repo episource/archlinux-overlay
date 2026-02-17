@@ -6,14 +6,9 @@
 # Contributor: Hisato Tatekura <hisato_tatekura@excentrics.net>
 # Contributor: Massimiliano Torromeo <massimiliano DOT torromeo AT google mail service>
 
-<<<<<<< yours
 distname=unbound
 pkgname=$distname-python
-pkgver=1.23.0
-=======
-pkgname=unbound
 pkgver=1.24.2
->>>>>>> theirs
 pkgrel=2
 pkgdesc="Validating, recursive, and caching DNS resolver with python scripting."
 arch=(x86_64)
