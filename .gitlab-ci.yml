@@ -1,5 +1,3 @@
-image: archlinux:base-devel
-
 variables:
   REPONAME: "archlinux-overlay"
   REPODIR: "$CI_PROJECT_DIR"
@@ -10,54 +8,55 @@ variables:
   KEYSERVER: "hkps://keys.openpgp.org"
   #KEYSERVER_CACERT: "https://x.y/z.pem"
 
-  
-before_script:
-  # Change builtin default pacman mirror
-  - |
-    if [[ -n "$PACMAN_MIRROR" ]]; then
-        echo "Using custom pacman mirror: $PACMAN_MIRROR"
-        echo "Server = $PACMAN_MIRROR" > /etc/pacman.d/mirrorlist
-    fi
+default:
+  image: archlinux:base-devel
+  before_script:
+    # Change builtin default pacman mirror
+    - |
+      if [[ -n "$PACMAN_MIRROR" ]]; then
+          echo "Using custom pacman mirror: $PACMAN_MIRROR"
+          echo "Server = $PACMAN_MIRROR" > /etc/pacman.d/mirrorlist
+      fi
 
-  # Install most recent keyring
-  - pacman-key --init
-  - pacman -Sy --noconfirm archlinux-keyring
-  
-  # Update build environment
-  - pacman -Su --noconfirm
-  
-  # Install various vcs packages needed to fetch sources of some PKGBUILDs
-  - pacman -S --noconfirm base-devel sudo git svn mercurial
-
-  # flex 2.6.3 is severly broken / incompatible
-  # see e.g. https://github.com/westes/flex/issues/162
-  - |
-    if [[ $( pacman -Q flex ) == *2.6.3* ]]; then # downgrade broken flex
-      curl https://archive.archlinux.org/packages/f/flex/flex-2.6.1-1-x86_64.pkg.tar.xz -o /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
-      pacman --noconfirm -U /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
-    fi
-  
-  # The repository build script is run by user 'nobody'. The build scripts needs
-  # to install dependencies using pacman. This requires root permissions.
-  # (Note: the build script itself can't be run as root, as makepkg would
-  # complain)
-  - "echo 'nobody ALL=(ALL) NOPASSWD: /usr/bin/pacman' >> /etc/sudoers"
-  
-  # a writable home-directory is needed by import-validpgpkeys.sh
-  # additionally the build directory must be owned by the user doing makepkg
-  - mkdir -p /home/nobody/build && chown -R nobody /home/nobody
-  - usermod -d /home/nobody -e '' nobody
-  
-  # import pgp keys flagged as valid
-  - sudo -u nobody -E -H .build-bin/import-validpgpkeys.sh
-  
-  - |
-    # add repository for locally built packages
-    echo "[$REPONAME]
-    Server = file://$REPODIR
-    SigLevel = Optional TrustAll" >> /etc/pacman.conf
+    # Install most recent keyring
+    - pacman-key --init
+    - pacman -Sy --noconfirm archlinux-keyring
     
-    sudo -u nobody -E -H .build-bin/update-repo.sh
+    # Update build environment
+    - pacman -Su --noconfirm
+    
+    # Install various vcs packages needed to fetch sources of some PKGBUILDs
+    - pacman -S --noconfirm base-devel sudo git svn mercurial
+
+    # flex 2.6.3 is severly broken / incompatible
+    # see e.g. https://github.com/westes/flex/issues/162
+    - |
+      if [[ $( pacman -Q flex ) == *2.6.3* ]]; then # downgrade broken flex
+        curl https://archive.archlinux.org/packages/f/flex/flex-2.6.1-1-x86_64.pkg.tar.xz -o /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
+        pacman --noconfirm -U /tmp/flex-2.6.1-1-x86_64.pkg.tar.xz;
+      fi
+    
+    # The repository build script is run by user 'nobody'. The build scripts needs
+    # to install dependencies using pacman. This requires root permissions.
+    # (Note: the build script itself can't be run as root, as makepkg would
+    # complain)
+    - "echo 'nobody ALL=(ALL) NOPASSWD: /usr/bin/pacman' >> /etc/sudoers"
+    
+    # a writable home-directory is needed by import-validpgpkeys.sh
+    # additionally the build directory must be owned by the user doing makepkg
+    - mkdir -p /home/nobody/build && chown -R nobody /home/nobody
+    - usermod -d /home/nobody -e '' nobody
+    
+    # import pgp keys flagged as valid
+    - sudo -u nobody -E -H .build-bin/import-validpgpkeys.sh
+    
+    - |
+      # add repository for locally built packages
+      echo "[$REPONAME]
+      Server = file://$REPODIR
+      SigLevel = Optional TrustAll" >> /etc/pacman.conf
+      
+      sudo -u nobody -E -H .build-bin/update-repo.sh
   
   
 build_repo:

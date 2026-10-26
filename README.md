@@ -42,17 +42,9 @@ Build artifacts (the repository) are deleted automatically after one week. Goto 
 ### ... locally using GitLab-CI without GitLab server
 GitLab-Ci can also be used locally without a GitLab server.
 
-**Prerequisites:** Install gitlab-ci-multi-runner: `pacman -S gitlab-ci-multi-runner`. Nothing more! No need to start and configure the associated gitlab-runner service.
-
-Now the repository is updated as such:
-1. Clone this repository & cd into its root
-2. Run the command below (as root or user having access to the docker socket) - the repository is then created inside a subdirectory `_repo`. If a PKGBUILD's version hasn't changed, existing binary packages are preserved and won't be rebuild. Otherwhise packages are replaced by newer versions, removing any outdated files.
-
-```bash
-mkdir -p _repo && OWNER=$(stat -c%u:%g _repo) && PERM=$(stat -c%a _repo) && \
-gitlab-runner exec docker --pre-build-script "export REPODIR=/repo && chown -R nobody /repo && chmod -R u+rwx /repo" --docker-volumes "$PWD/_repo:/repo" build_repo; \
-chown -R $OWNER _repo && chmod -R $PERM _repo
-```
+**Prerequisites:** [glci](https://glci-e20136.gitlab.io/) installed & configured - also [available as PKGBUILD from this repo](glci/PKGBUILD).\
+**Build:** `glci run`\
+**Retrieve repo:** `glci artifacts download build_repo --output repo.zip`
 
 ### Configuration options when using gitlab-ci and gitlab-runner
 Set the environment variable `PACMAN_MIRROR` to change builtin default pacman mirror. This can be done using the gitlab web UI for CI jobs or by using gitlab runner argument `--env`. Take care to escape `$` by doubling it, e.g. `$$repo`.
