@@ -1,13 +1,13 @@
 # archlinux-overlay
-This repository contains a collection of custom [PKGBUILD](https://wiki.archlinux.org/index.php/PKGBUILD) scripts for [Arch Linux](https://wiki.archlinux.org/index.php/Arch_Linux).
+This repository contains a collection of custom [PKGBUILD](https://wiki.archlinux.org/title/PKGBUILD) scripts for [Arch Linux](https://wiki.archlinux.org/title/Arch_Linux).
 
 The repository includes all necessary configuration files to build the corresponding binary package repository with [GitLab-CI](https://about.gitlab.com/gitlab-ci/). Nevertheless, the packages can also be build manually or using other CI-tools.
 
 
 ## About PKGBUILD and makepkg
-A [PKGBUILD](https://wiki.archlinux.org/index.php/PKGBUILD) is a shell script providing all information required by the [makepkg](https://wiki.archlinux.org/index.php/Makepkg) utility to build a binary package for [Arch Linux](https://wiki.archlinux.org/index.php/Arch_Linux) and its package manager [pacman](https://wiki.archlinux.org/index.php/Pacman).
+A [PKGBUILD](https://wiki.archlinux.org/title/PKGBUILD) is a shell script providing all information required by the [makepkg](https://wiki.archlinux.org/title/Makepkg) utility to build a binary package for [Arch Linux](https://wiki.archlinux.org/title/Arch_Linux) and its package manager [pacman](https://wiki.archlinux.org/title/Pacman).
 
-More information on [how to create packages](https://wiki.archlinux.org/index.php/Creating_packages) can be found in the [Arch Linux Wiki](https://wiki.archlinux.org/).
+More information on [how to create packages](https://wiki.archlinux.org/title/Creating_packages) can be found in the [Arch Linux Wiki](https://wiki.archlinux.org/).
 
 
 ## Building the packages
@@ -15,11 +15,11 @@ More information on [how to create packages](https://wiki.archlinux.org/index.ph
 **Important:** The build scripts (`.build-bin/*` , `.build-lib/*`) are designed to be run in a dedicated container or virtual machine. Don't run these scripts on your main machine! You have been warned!
 
 ### ... using GitLab & GitLab-CI
-This repository already includes a pre-configured [.gitlab-ci.yml](https://docs.gitlab.com/ce/ci/yaml/README.html) configuration file for [Gitlab-CI](https://about.gitlab.com/gitlab-ci/). It uses a [docker runner](https://docs.gitlab.com/ce/ci/docker/using_docker_images.html) to build the packages in a docker container using [`nfnty/arch-devel:latest`](https://hub.docker.com/r/nfnty/arch-devel/) as image.
+This repository already includes a pre-configured [.gitlab-ci.yml](https://docs.gitlab.com/ci/yaml/) configuration file for [Gitlab-CI](https://about.gitlab.com/gitlab-ci/). It uses a [docker runner](https://docs.gitlab.com/runner/executors/docker/) to build the packages in a docker container using [`archlinux:base-devel`](https://hub.docker.com/_/archlinux) as image.
 
-**All you need to do:** Read about [the gitlab runner](https://docs.gitlab.com/runner/) and [using docker images](https://docs.gitlab.com/ce/ci/docker/using_docker_images.html) to configure GitLab and GitLab-CI, such that a docker runner and the docker image [`nfnty/arch-devel:latest`](https://hub.docker.com/r/nfnty/arch-devel/) are available to your `archlinux-overlay` gitlab project.
+**All you need to do:** Read about [the gitlab runner](https://docs.gitlab.com/runner/) and [using docker images](https://docs.gitlab.com/runner/executors/docker/) to configure GitLab and GitLab-CI, such that a docker runner and the docker image [`archlinux:base-devel`](https://hub.docker.com/_/archlinux) are available to your `archlinux-overlay` gitlab project.
 
-Currently all packages are rebuild when going this way. The resulting repository is available for [download as a tar or zip archive](https://gitlab.com/help/user/project/builds/artifacts.md#downloading-build-artifacts), but can also be made available to pacman directly: Just append the snippet below to [/etc/pacman.conf](https://www.archlinux.org/pacman/pacman.conf.5.html) and adjust the `build-id` and url. Sadly, until [gitlab-org/gitlab-ce#22536](https://gitlab.com/gitlab-org/gitlab-ce/issues/22536) is implemented, there's no simple way built into gitlab to refer to the most recent `master`-branch build directly. 
+Currently all packages are rebuild when going this way. The resulting repository is available for [download as a tar or zip archive](https://docs.gitlab.com/ci/jobs/job_artifacts/#download-job-artifacts), but can also be made available to pacman directly: Just append the snippet below to [/etc/pacman.conf](https://www.archlinux.org/pacman/pacman.conf.5.html) and adjust the `build-id` and url. Sadly, until [gitlab-org/gitlab-ce#22536](https://gitlab.com/gitlab-org/gitlab-ce/issues/22536) is implemented, there's no simple way built into gitlab to refer to the most recent `master`-branch build directly. 
 
 ```
 [archlinux-overlay]
@@ -37,7 +37,7 @@ SigLevel = Optional TrustAll
 
 ... a more comfortable way would be setting up a reverse proxy with a rewrite rule similiar to the following nginx example: `rewrite ^/([^/]*)/([^/]*)/_artifacts/branch/(.*)/job/(.*)/(browse|download|raw)(/.*)? /$1/$2/-/jobs/artifacts/$3/$5$6?job=$4 break;` => `https://gitlab.example.com/episource/archlinux-overlay/_artifacts/branch/master/job/build_repo/raw/`
 
-Build artifacts (the repository) are deleted automatically after one week. Goto to the [build's page](https://gitlab.com/help/user/project/builds/artifacts.md#browsing-build-artifacts) and choose "keep" to preserve the repository for an unlimited time.
+Build artifacts (the repository) are deleted automatically after one week. Goto to the [build's page](https://docs.gitlab.com/ci/jobs/job_artifacts/#browse-the-contents-of-the-artifacts-archive) and choose "keep" to preserve the repository for an unlimited time.
 
 ### ... locally using GitLab-CI without GitLab server
 GitLab-Ci can also be used locally without a GitLab server.
@@ -50,13 +50,13 @@ GitLab-Ci can also be used locally without a GitLab server.
 Set the environment variable `PACMAN_MIRROR` to change builtin default pacman mirror. This can be done using the gitlab web UI for CI jobs or by using gitlab runner argument `--env`. Take care to escape `$` by doubling it, e.g. `$$repo`.
 
 ### ... using a custom build environment
-The build environment needs to be based on [Arch Linux](https://wiki.archlinux.org/index.php/Arch_Linux). If a dockerized build environment is an option, take a look at the docker image [`nfnty/arch-devel`](https://hub.docker.com/r/nfnty/arch-devel/), which is a good point to start.
+The build environment needs to be based on [Arch Linux](https://wiki.archlinux.org/title/Arch_Linux). If a dockerized build environment is an option, take a look at the docker image [`archlinux:base-devel`](https://hub.docker.com/_/archlinux), which is a good point to start.
 
 **Important:** During package build, packages may be installed or replaced and public keys might be added to the build user's keyring.
 
 Here are the configuration steps required in addition to setting up the operating system: 
 1. Install the meta-package `base-devel`: `pacman -S --needed base-devel`
-2. Optional - adjust `/etc/makepkg.conf` to your needs - see [makepkg.conf(5)](https://www.archlinux.org/pacman/makepkg.conf.5.html) and [Creating optimized packages](https://wiki.archlinux.org/index.php/Makepkg#Creating_optimized_packages) for details.
+2. Optional - adjust `/etc/makepkg.conf` to your needs - see [makepkg.conf(5)](https://www.archlinux.org/pacman/makepkg.conf.5.html) and [Creating optimized packages](https://wiki.archlinux.org/title/Makepkg#Creating_optimized_packages) for details.
 3. Choose or create a user account for building the packages (below referred to as `the-user`):
   * it needs to be a restricted (non-root) user account
   * it will be granted permission to invoke (sudo) pacman as root without password
@@ -70,7 +70,7 @@ From now on, the whole repository is build with these steps:
 3. Optional, but recommended - update the system: `sudo pacman -Syu --noconfirm`
 4. Change to the repository's source directory
 5. Choose a binary repository location & name: `export REPONAME="archlinux-overlay" && export REPODIR="_repo"`
-6. Import missing [validpgpkeys](https://wiki.archlinux.org/index.php/PKGBUILD#validpgpkeys): `.build-bin/import-validpgpkeys.sh`
+6. Import missing [validpgpkeys](https://wiki.archlinux.org/title/PKGBUILD#validpgpkeys): `.build-bin/import-validpgpkeys.sh`
 7. Build the whole repository: `.build-bin/build.sh`
 8. Create the repository: `.build-bin/deploy.sh`
 
@@ -105,7 +105,7 @@ _do repo-add --new "${REPODIR}/${REPONAME}.db.tar.xz" "${REPODIR}"/*.pkg.tar.xz
 ```
 
 ### ... manually
-You can always build single packages using [makepkg](https://wiki.archlinux.org/index.php/Makepkg). This requires you to take care of dependencies manually. You might also need to import the public keys listed as [validpgpkeys](https://wiki.archlinux.org/index.php/PKGBUILD#validpgpkeys) into your user's keyring.
+You can always build single packages using [makepkg](https://wiki.archlinux.org/title/Makepkg). This requires you to take care of dependencies manually. You might also need to import the public keys listed as [validpgpkeys](https://wiki.archlinux.org/title/PKGBUILD#validpgpkeys) into your user's keyring.
 
 Building single packages this way is generally considered safe, so it is usually OK to do this on your main machine. However, you shouldn't use a root account. Makepkg even enforces this.
 
