@@ -1,0 +1,50 @@
+# Maintainer: Philipp Serr <episource@gmx.org>
+pkgname=glci
+pkgver=0.8.0
+pkgrel=1
+pkgdesc='Run GitLab CI/CD pipelines locally'
+arch=('x86_64' 'aarch64')
+url='https://gitlab.com/gitlab-org/ci-cd/runner-tools/glci'
+license=('MIT')
+depends=('glibc')
+makedepends=('git' 'go' 'make')
+optdepends=(
+  'docker: run CI jobs using Docker'
+  'podman: run CI jobs using Podman instead of Docker'
+  'glab: optional GitLab authentication integration'
+)
+source=("${pkgname}::git+${url}.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+
+build() {
+  cd "${srcdir}/${pkgname}"
+  export GOPATH="${srcdir}/gopath"
+  export GOCACHE="${srcdir}/go-cache"
+  export GOFLAGS='-trimpath -mod=readonly'
+
+  make build
+}
+
+check() {
+  cd "${srcdir}/${pkgname}"
+  export GOPATH="${srcdir}/gopath"
+  export GOCACHE="${srcdir}/go-cache"
+  export GOFLAGS='-trimpath -mod=readonly'
+
+  make test
+}
+
+package() {
+  cd "${srcdir}/${pkgname}"
+  install -Dm755 glci "${pkgdir}/usr/bin/glci"
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+
+  install -dm755 "${pkgdir}/usr/share/bash-completion/completions"
+  install -dm755 "${pkgdir}/usr/share/zsh/site-functions"
+  install -dm755 "${pkgdir}/usr/share/fish/vendor_completions.d"
+
+  ./glci completion bash > "${pkgdir}/usr/share/bash-completion/completions/glci"
+  ./glci completion zsh > "${pkgdir}/usr/share/zsh/site-functions/_glci"
+  ./glci completion fish > "${pkgdir}/usr/share/fish/vendor_completions.d/glci.fish"
+}
+
