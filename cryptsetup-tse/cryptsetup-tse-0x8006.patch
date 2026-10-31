@@ -1,0 +1,14 @@
+diff --git a/lib/bitlk/bitlk.c b/lib/bitlk/bitlk.c
+--- a/lib/bitlk/bitlk.c
++++ b/lib/bitlk/bitlk.c
+@@ -641,8 +641,10 @@ int BITLK_read_sb(struct crypt_device *cd, struct bitlk_metadata *params)
+ 		params->cipher = "aes";
+ 		params->cipher_mode = "xts-plain64";
+ 		break;
+ 	case 0x8005:
++	/* Experimental: hardware-accelerated BitLocker XTS-AES-256 (Intel TSE). */
++	case 0x8006:
+ 		params->key_size = 512;
+ 		params->cipher = "aes";
+ 		params->cipher_mode = "xts-plain64";
+ 		break;
