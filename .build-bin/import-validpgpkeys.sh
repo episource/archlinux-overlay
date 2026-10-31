@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+shopt -s nullglob
+
 SCRIPT_DIR=$( dirname $( readlink -e $0 ) )
 source "$SCRIPT_DIR/../.build-lib/ci-library.sh"
 
@@ -28,3 +30,8 @@ fi
 
 # `gpg --recv-key` requires write access to the current user's home directory!
 _do gpg --recv-key $(get_validpgpkeys)
+
+# import package provided trust anchors
+for k in */keys/pgp/*.asc; do
+  _do gpg --import "$k"
+done
